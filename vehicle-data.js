@@ -182,16 +182,30 @@ EPA covers light-duty vehicles sold in the US (1984+). It does not list heavy-du
    return { status: engines.length ? 'ok' : 'empty', engines: engines, epaModels: matched, allEpaModels: all, partial: partial };
  }
 
- async function getModels(year, make) {
-   var d = await fetchJson(VPIC + '/GetModelsForMakeYear/make/' + encodeURIComponent(make) + '/modelyear/' + encodeURIComponent(year) + '?format=json');
-   var rows = d.Results || [];
-   var exact = rows.filter(function (r) { return norm(r.Make_Name) === norm(make); });
-   if (exact.length) rows = exact;
-   var names = {};
-   rows.forEach(function (r) { if (r.Model_Name) names[String(r.Model_Name).trim()] = 1; });
-   return Object.keys(names).sort(function (a, b) { return a.localeCompare(b); });
- }
-
+  /* Cars and light trucks only. vPIC's unfiltered list mixes in motorcycles, ATVs and trailers, so models are requested
+  per vehicle type and merged. If any typed request fails, or none returns models, the unfiltered list is used instead. */
+  var MODEL_TYPES = ['passenger car', 'multipurpose passenger vehicle (mpv)', 'truck', 'incomplete vehicle'];
+  function modelNames(rows, make) {
+    var exact = rows.filter(function (r) { return norm(r.Make_Name) === norm(make); });
+    var out = {};
+    (exact.length ? exact : rows).forEach(function (r) { if (r.Model_Name) out[String(r.Model_Name).trim()] = 1; });
+    return Object.keys(out);
+  }
+  async function getModels(year, make) {
+    var base = VPIC + '/GetModelsForMakeYear/make/' + encodeURIComponent(make) + '/modelyear/' + encodeURIComponent(year);
+    var res = await Promise.all(MODEL_TYPES.map(function (t) {
+      return fetchJson(base + '/vehicletype/' + encodeURIComponent(t) + '?format=json').then(function (d) { return d.Results || []; }, function () { return null; });
+    }));
+    var merged = {};
+    res.forEach(function (rows) { if (rows) modelNames(rows, make).forEach(function (n) { merged[n] = 1; }); });
+    var list = Object.keys(merged);
+    if (!list.length || res.indexOf(null) >= 0) {
+      try { var all = modelNames((await fetchJson(base + '?format=json')).Results || [], make); if (all.length) list = all; }
+      catch (e) { if (!list.length) throw e; }
+    }
+    return list.sort(function (a, b) { return a.localeCompare(b); });
+  }
+  
  function validVin(v) { return /^[A-HJ-NPR-Z0-9]{17}$/.test(v); }
   async function decodeVin(vin) {
     if (!validVin(vin)) throw new Error('Enter a valid 17-character VIN (the letters I, O and Q are never used)');
