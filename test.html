@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Car Trouble — Test Version</title>
+  <!-- STAGING PAGE. Production is index.html (with app.js and vehicle-data.js), which this page does not load or change. -->
+  <style>
+  :root { --bg: #ffffff; --fg: #111111; --muted: #3d3d3d; --line: #8a8a8a; --accent: #0b4fa8; --accent-fg: #ffffff; --soft: #eef3fb; --warn-bg: #fff4d6; --warn-line: #9a6700; --no-bg: #fde7e7; --no-line: #b3261e; --ok-bg: #e6f4ea; --ok-line: #1e6b34; }
+  @media (prefers-color-scheme: dark) { :root { --bg: #121212; --fg: #f2f2f2; --muted: #d0d0d0; --line: #8f8f8f; --accent: #8ab4ff; --accent-fg: #0b0b0b; --soft: #1d2533; --warn-bg: #3a2e05; --warn-line: #f2c14e; --no-bg: #3d1414; --no-line: #ff8a80; --ok-bg: #12301c; --ok-line: #7fd99a; } }
+  * { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 1.125rem/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+.testbar { position: sticky; top: 0; z-index: 10; background: #ffd400; color: #000; border-bottom: 4px solid #000; padding: .5rem 1rem; text-align: center; }
+.testbar strong { display: block; font-size: 1.35rem; letter-spacing: .02em; }
+.testbar span { font-size: .95rem; }
+.testbar a { color: #000; }
+main { max-width: 44rem; margin: 0 auto; padding: 1rem 1rem 3rem; }
+h1, h2 { line-height: 1.25; margin: .5rem 0 .75rem; }
+h1 { font-size: 1.75rem; } h2 { font-size: 1.5rem; } h3 { font-size: 1.15rem; margin: 1.25rem 0 .35rem; }
+h1:focus, h2:focus { outline: none; }
+p { margin: .5rem 0 .9rem; }
+.lead, .help { color: var(--muted); }
+.small { font-size: .95rem; color: var(--muted); }
+.crumb { font-size: .95rem; color: var(--muted); margin: 0 0 .25rem; }
+.steps { font-size: .95rem; font-weight: 600; margin: .25rem 0; }
+.prog { height: .5rem; background: var(--soft); border: 1px solid var(--line); border-radius: 1rem; overflow: hidden; }
+.prog span { display: block; height: 100%; background: var(--accent); }
+button, select, input, .btn, .btn2 { font: inherit; }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+.opts { display: grid; gap: .6rem; margin: 1rem 0; }
+.opt { display: block; width: 100%; min-height: 3.5rem; padding: .8rem 1rem; text-align: left; background: var(--soft); color: var(--fg); border: 2px solid var(--line); border-radius: .75rem; cursor: pointer; }
+.opt:hover { border-color: var(--accent); }
+.cats { display: grid; grid-template-columns: 1fr; gap: .6rem; margin: 1rem 0; }
+@media (min-width: 40rem) { .cats { grid-template-columns: 1fr 1fr; } }
+.cat { display: grid; grid-template-columns: 2.5rem 1fr; grid-template-rows: auto auto; column-gap: .6rem; align-items: center; text-align: left; min-height: 4.5rem; padding: .75rem 1rem; background: var(--soft); color: var(--fg); border: 2px solid var(--line); border-radius: .75rem; cursor: pointer; }
+.cat:hover { border-color: var(--accent); }
+.cat .icon { grid-row: 1 / span 2; font-size: 1.75rem; text-align: center; }
+.cat .cl { font-weight: 700; }
+.cat .cs { font-size: .95rem; color: var(--muted); }
+.btn, .btn2 { display: inline-block; min-height: 3rem; padding: .6rem 1.1rem; border-radius: .6rem; cursor: pointer; border: 2px solid var(--accent); text-decoration: none; }
+.btn { background: var(--accent); color: var(--accent-fg); font-weight: 700; }
+.btn2 { background: transparent; color: var(--fg); }
+.btn[disabled], .btn2[disabled] { opacity: .55; cursor: not-allowed; }
+.link { background: none; border: 0; padding: .5rem 0; min-height: 2.75rem; color: var(--accent); text-decoration: underline; cursor: pointer; text-align: left; }
+.nav, .acts { display: flex; flex-wrap: wrap; gap: .6rem; margin: 1.5rem 0 1rem; }
+.vehbar { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: center; padding: .6rem .9rem; border: 1px solid var(--line); border-radius: .6rem; }
+details.more { border: 1px solid var(--line); border-radius: .6rem; margin: .6rem 0; padding: 0 .9rem; }
+details.more > summary { cursor: pointer; padding: .7rem 0; min-height: 2.75rem; font-weight: 600; color: var(--accent); }
+details.more[open] > summary { border-bottom: 1px solid var(--line); margin-bottom: .5rem; }
+dt { font-weight: 700; margin-top: .5rem; } dd { margin: 0 0 .5rem; }
+figure { margin: .5rem 0 1rem; } figure svg { width: 100%; height: auto; max-height: 22rem; color: var(--fg); }
+figcaption { font-size: .95rem; color: var(--muted); }
+.warn, .note { border-left: 6px solid var(--warn-line); background: var(--warn-bg); padding: .6rem .9rem; border-radius: .4rem; }
+.badge { display: inline-block; font-weight: 700; padding: .3rem .8rem; border-radius: 1rem; border: 2px solid var(--line); }
+.c-stop { border-color: var(--no-line); background: var(--no-bg); }
+.c-confirmed, .c-strong { border-color: var(--ok-line); background: var(--ok-bg); }
+.c-possible, .c-insufficient { border-color: var(--warn-line); background: var(--warn-bg); }
+.drive { padding: .75rem 1rem; border-radius: .6rem; border: 3px solid var(--line); margin: .75rem 0; }
+.drive strong { display: block; }
+.d-no { border-color: var(--no-line); background: var(--no-bg); }
+.d-caution, .d-unknown { border-color: var(--warn-line); background: var(--warn-bg); }
+.d-ok { border-color: var(--ok-line); background: var(--ok-bg); }
+.drive.d-no strong::before { content: "⛔ "; } .drive.d-caution strong::before, .drive.d-unknown strong::before { content: "⚠️ "; } .drive.d-ok strong::before { content: "✅ "; }
+.told { padding-left: 1.4rem; } .told li { margin-bottom: .6rem; }
+.tag { font-size: .85rem; border: 1px solid var(--line); border-radius: .4rem; padding: 0 .35rem; }
+.field { margin: 1rem 0; }
+.field label, .field .lbl { display: block; font-weight: 700; margin-bottom: .3rem; }
+select, input[type="text"] { width: 100%; min-height: 3rem; padding: .5rem .7rem; border: 2px solid var(--line); border-radius: .5rem; background: var(--bg); color: var(--fg); }
+.radio { display: flex; align-items: center; gap: .6rem; min-height: 2.75rem; }
+.radio input { width: 1.4rem; height: 1.4rem; }
+.status { min-height: 1.5rem; font-size: 1rem; }
+.status.err { color: var(--no-line); font-weight: 600; }
+.phlist { display: flex; flex-wrap: wrap; gap: .75rem; }
+.phlist figure { margin: 0; width: 9rem; } .phlist img { width: 100%; height: 7rem; object-fit: cover; border-radius: .4rem; border: 1px solid var(--line); }
+pre.report { white-space: pre-wrap; word-wrap: break-word; font-size: .95rem; background: var(--soft); padding: .75rem; border-radius: .5rem; }
+.saved { list-style: none; padding: 0; } .saved li { border: 1px solid var(--line); border-radius: .6rem; padding: .6rem .9rem; margin-bottom: .6rem; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; transition: none !important; animation: none !important; } }
+@media print { .testbar, .nav, .acts, .phpick, .noprint { display: none !important; } details { border: 0 !important; } body { color: #000; background: #fff; } }
+</style>
+  </head>
+  <body>
+  <div class="testbar" role="note"><strong>Car Trouble — Test Version</strong><span>This is a test page, not the finished app. Results may change. <a href="./">Go to the current app</a></span></div>
+<main id="app" aria-live="polite"><p>Loading…</p><noscript><p>Car Trouble needs JavaScript turned on in your browser.</p></noscript></main>
+  <script src="trees-v2.js"></script>
+  <script src="trees-v2b.js"></script>
+  <script src="vehicle-data-v2.js"></script>
+  <script src="app-v2-core.js"></script>
+  <script src="app-v2-vehicle.js"></script>
+  <script src="app-v2-extras.js"></script>
+  </body>
+  </html>
+  
