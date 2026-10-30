@@ -8,7 +8,7 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
   var A = g.CTApp, D = g.document;
   if (!A) return;
   var T = g.CarTroubleTrees || {}, R = T.R || {};
-  var KEY = 'carTroubleV2Saved', MAXSAVED = 30, MAXMB = 20, errs = {}, pending = null;
+  var KEY = 'carTroubleV2Saved', MAXSAVED = 30, MAXMB = 20, errs = {}, pending = null, openId = null;
   function esc(s) { return A.esc(s); }
 
  /* Styles for this file, plus the fix for car-type choices showing in bold. */
@@ -26,6 +26,7 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
   function line(label, v) { return v ? label + ': ' + v + '\n' : ''; }
   function curR() { return R[A.S.cur] || A.MISSING; }
   function photoCount() { return Object.keys(A.S.photos || {}).length; }
+  function sizeText(n) { return n < 1048576 ? Math.max(1, Math.round(n / 1024)) + ' KB' : (n / 1048576).toFixed(1) + ' MB'; }
   function vehText() {
     var S = A.S, v = A.vehLabel(), p = 'Not given';
     if (S.veh.pt) p = (A.PTL[S.veh.pt] || S.veh.pt) + (S.veh.ptFrom ? (S.veh.ptFrom === 'you' ? ' (chosen by you)' : ' (from ' + S.veh.ptFrom + ')') : '');
@@ -107,7 +108,7 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
    else {
      h += '<ul class="saved">';
      a.forEach(function (x) {
-       h += '<li><details class="more"' + (pending === x.id ? ' open' : '') + '><summary>' + esc(x.title) + '<br><span class="small">' + esc(x.date) + (x.car ? ' &middot; ' + esc(x.car) : '') + '</span></summary><pre class="report">' + esc(x.text) + '</pre><div class="xrow">';
+       h += '<li><details class="more"' + (pending === x.id || openId === x.id ? ' open' : '') + '><summary>' + esc(x.title) + '<br><span class="small">' + esc(x.date) + (x.car ? ' &middot; ' + esc(x.car) : '') + '</span></summary><pre class="report">' + esc(x.text) + '</pre><div class="xrow">';
        if (pending === x.id) h += '<p><strong>Delete this report? This cannot be undone.</strong></p><button type="button" class="btn" data-act="xdelyes" data-id="' + esc(x.id) + '">Yes, delete it</button><button type="button" class="btn2" data-act="xcancel">Keep it</button>';
        else h += '<button type="button" class="btn2" data-act="xcopys" data-id="' + esc(x.id) + '">Copy</button><button type="button" class="btn2" data-act="xdel" data-id="' + esc(x.id) + '">Delete this report</button>';
        h += '</div></details></li>';
@@ -117,15 +118,16 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
    return h + '<p class="status" id="xstat" role="status" aria-live="polite"></p><nav class="nav" aria-label="Guide controls"><button type="button" class="btn2" data-act="home">&larr; Back to the start</button></nav>';
  };
   A.backs = A.backs || {};
-  A.backs.saved = function () { pending = null; A.S.screen = 'home'; };
+  A.backs.saved = function () { pending = openId = null; A.S.screen = 'home'; };
   function findSaved(id) { var a = loadSaved(); for (var i = 0; i < a.length; i++) { if (a[i].id === id) return a[i]; } return null; }
-  A.acts.saved = function () { pending = null; A.S.screen = 'saved'; A.S.ret = 'home'; A.render(); };
+  function focusAct(sel) { var b = D.querySelector(sel); if (b) { try { b.focus({ preventScroll: false }); } catch (e) { b.focus(); } } }
+  A.acts.saved = function () { pending = openId = null; A.S.screen = 'saved'; A.S.ret = 'home'; A.render(); };
   A.acts.xcopys = function (el) { var x = findSaved(el.getAttribute('data-id')); if (x) copyText(x.text, 'Report copied.'); };
-  A.acts.xdel = function (el) { pending = el.getAttribute('data-id'); A.render(true); var b = D.querySelector('[data-act="xdelyes"]'); if (b) b.focus(); };
-  A.acts.xclr = function () { pending = '*'; A.render(true); var b = D.querySelector('[data-act="xclryes"]'); if (b) b.focus(); };
-  A.acts.xcancel = function () { pending = null; A.render(); };
-  A.acts.xdelyes = function (el) { var id = el.getAttribute('data-id'), ok = writeSaved(loadSaved().filter(function (x) { return x.id !== id; })); pending = null; A.render(); status(ok ? 'Report deleted.' : 'Sorry, the report could not be deleted.'); };
-  A.acts.xclryes = function () { var ok = writeSaved([]); pending = null; A.render(); status(ok ? 'All saved reports deleted.' : 'Sorry, the reports could not be deleted.'); };
+  A.acts.xdel = function (el) { pending = openId = el.getAttribute('data-id'); A.render(true); focusAct('[data-act="xdelyes"]'); };
+  A.acts.xclr = function () { pending = '*'; A.render(true); focusAct('[data-act="xclryes"]'); };
+  A.acts.xcancel = function () { var id = pending; pending = null; A.render(true); focusAct(id === '*' ? '[data-act="xclr"]' : '[data-act="xdel"][data-id="' + String(id).replace(/[^0-9]/g, '') + '"]'); };
+  A.acts.xdelyes = function (el) { var id = el.getAttribute('data-id'), ok = writeSaved(loadSaved().filter(function (x) { return x.id !== id; })); pending = openId = null; A.render(); status(ok ? 'Report deleted.' : 'Sorry, the report could not be deleted.'); };
+  A.acts.xclryes = function () { var ok = writeSaved([]); pending = openId = null; A.render(); status(ok ? 'All saved reports deleted.' : 'Sorry, the reports could not be deleted.'); };
 
  /* ---------- photos (kept in this tab only) ---------- */
  function revoke(p) { try { if (p && p.url) URL.revokeObjectURL(p.url); } catch (e) { /* ignore */ } }
@@ -134,12 +136,12 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
   function refocus(key) { var el = D.getElementById(pid(key)); if (el) { try { el.focus({ preventScroll: true }); } catch (e) { el.focus(); } } }
   A.onReset.push(clearPhotos);
   var vs = A.vehicleSaved; A.vehicleSaved = function () { clearPhotos(); return vs.apply(this, arguments); };
-  var goHome = A.acts.home; A.acts.home = function () { clearPhotos(); pending = null; return goHome.apply(this, arguments); };
+  var goHome = A.acts.home; A.acts.home = function () { clearPhotos(); pending = openId = null; return goHome.apply(this, arguments); };
   var goCat = A.acts.cat; A.acts.cat = function () { clearPhotos(); return goCat.apply(this, arguments); };
   A.photoHtml = function (key) {
     var p = A.S.photos[key], id = pid(key);
     var h = '<div class="phpick"><h3>Add a photo (optional)</h3><p class="small">A photo can help a mechanic see what you saw. It stays on this device: it is not uploaded, sent or saved, and Car Trouble cannot look at or analyze photos. It is cleared when you start over or close this page.</p>';
-    if (p) h += '<div class="phprev"><img data-ph src="' + esc(p.url) + '" alt="Your photo: ' + esc(p.name) + '"><p class="small">' + esc(p.name) + ' (' + esc(p.mb) + ' MB)</p><button type="button" class="btn2" data-act="phrm" data-key="' + esc(key) + '">Remove photo</button></div>';
+    if (p) h += '<div class="phprev"><img data-ph src="' + esc(p.url) + '" alt="Your photo: ' + esc(p.name) + '"><p class="small">' + esc(p.name) + ' (' + esc(p.size) + ')</p><button type="button" class="btn2" data-act="phrm" data-key="' + esc(key) + '">Remove photo</button></div>';
     h += '<label for="' + id + '">' + (p ? 'Use a different photo' : 'Choose or take a photo') + '</label><input type="file" id="' + id + '" accept="image/*,.heic,.heif" data-change="photo" data-key="' + esc(key) + '">';
     if (errs[key]) h += '<p class="warn" role="alert">' + esc(errs[key]) + '</p>';
     return h + '</div>';
@@ -155,11 +157,11 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
     else {
       try { u = URL.createObjectURL(f); } catch (e) { u = ''; }
       if (!u) errs[key] = 'This browser cannot attach photos.';
-      else { revoke(A.S.photos[key]); A.S.photos[key] = { url: u, name: f.name || 'photo', mb: (f.size / 1048576).toFixed(1) }; }
+      else { revoke(A.S.photos[key]); A.S.photos[key] = { url: u, name: f.name || 'photo', size: sizeText(f.size) }; }
     }
     A.render(true); refocus(key);
   };
   A.acts.phrm = function (el) { var key = el.getAttribute('data-key'); revoke(A.S.photos[key]); delete A.S.photos[key]; delete errs[key]; A.render(true); refocus(key); };
 
- A.extras = { reportText: reportText, mechText: mechText, loadSaved: loadSaved, storageOk: STORE };
+ A.extras = { reportText: reportText, mechText: mechText, loadSaved: loadSaved, sizeText: sizeText, storageOk: STORE };
 })(window);
