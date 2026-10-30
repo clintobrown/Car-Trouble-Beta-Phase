@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Car Trouble - Automated Checks (Test Version)</title>
+<!-- STAGING ONLY. Runs automated checks on the v2 content and code. Production index.html does not use this page. -->
+  <style>
+  body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; margin: 0; padding: 1rem; max-width: 64rem; }
+.bar { background: #ffd400; color: #000; padding: .7rem 1rem; font-weight: 700; margin: -1rem -1rem 1rem; }
+.pass { color: #0a7a2f; font-weight: 700; } .fail { color: #b00020; font-weight: 700; } .info { color: #555; font-weight: 700; }
+  #sum { font-size: 1.3rem; font-weight: 700; }
+  table { border-collapse: collapse; width: 100%; font-size: .9rem; } td, th { border: 1px solid #bbb; padding: .3rem .4rem; text-align: left; vertical-align: top; }
+li { margin: .25rem 0; } .d { color: #444; font-size: .92rem; word-break: break-word; }
+</style>
+  </head>
+  <body>
+  <div class="bar">Car Trouble - Test Version: automated checks (for testing only)</div>
+  <h1>Automated checks</h1>
+  <p>This page checks the test version's questions, results and helper code, right here in your browser. It does not contact any car database and does not send anything anywhere. <a href="test.html">Open the test app</a>.</p>
+  <p id="sum">Running checks...</p>
+  <div id="out"></div>
+  <script>window.__ctErrors = []; window.addEventListener('error', function (e) { window.__ctErrors.push(String(e.message || e)); });</script>
+  <script src="trees-v2.js?v=2"></script>
+  <script src="trees-v2b.js?v=2"></script>
+  <script src="vehicle-data-v2.js?v=2"></script>
+  <script src="app-v2-core.js?v=2"></script>
+  <script>
+  (function () {
+  'use strict';
+var out = document.getElementById('out'), pass = 0, fail = 0, h = '<ul>';
+var T = window.CarTroubleTrees, A = window.CTApp, V = window.VehicleDataV2;
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+function check(name, ok, detail) { if (ok) pass++; else fail++; h += '<li><span class="' + (ok ? 'pass">PASS' : 'fail">FAIL') + '</span> ' + esc(name) + (detail ? '<br><span class="d">' + esc(detail) + '</span>' : '') + '</li>'; }
+  function info(name, detail) { h += '<li><span class="info">INFO</span> ' + esc(name) + (detail ? '<br><span class="d">' + esc(detail) + '</span>' : '') + '</li>'; }
+  function section(t) { h += '</ul><h2>' + esc(t) + '</h2><ul>'; }
+function run(name, f) { try { f(); } catch (e) { check(name + ' (crashed)', false, String(e && e.message || e)); } }
+
+section('1. Files loaded');
+check('Question content loaded (trees-v2.js and trees-v2b.js)', !!(T && T.N && T.R && T.CATS));
+check('App core loaded (app-v2-core.js)', !!(A && A.validateTrees));
+check('Car data helper loaded (vehicle-data-v2.js)', !!V);
+
+if (T && A && A.validateTrees) {
+section('2. Question content');
+run('Content check', function () {
+  var v = A.validateTrees();
+check('No content errors (missing steps, loops, dead ends, unknown terms or pictures, invalid fields)', v.errors.length === 0, v.errors.length ? v.errors.length + ' error(s): ' + v.errors.slice(0, 40).join(' | ') : v.questions + ' questions, ' + v.results + ' results, ' + v.categories + ' categories');
+check('Every question and result can be reached', v.warnings.length === 0, v.warnings.slice(0, 40).join(' | '));
+check('There are 14 problem categories', T.CATS.length === 14, 'Found ' + T.CATS.length + ': ' + T.CATS.map(function (c) { return c.label; }).join(', '));
+var safe = T.N.safety;
+check('Every guide starts with a safety question', !!(safe && safe.opts && safe.opts.length >= 2));
+});
+
+section('3. Every possible path ends at a result (each category, each car type)');
+run('Path walk', function () {
+  var tbl = '<table><tr><th>Category</th><th>Car type</th><th>First question after safety</th><th>Paths</th><th>Different results</th><th>Most questions</th></tr>', allOk = true, LIMIT = 50000;
+T.CATS.forEach(function (c) {
+  A.PTS.forEach(function (p) {
+    var paths = 0, res = {}, max = 0, bad = [];
+(function walk(id, d, seen) {
+if (paths > LIMIT) return;
+if (T.R[id]) { paths++; res[id] = 1; if (d > max) max = d; return; }
+var n = T.N[id];
+if (!n) { bad.push('missing step ' + id); return; }
+if (seen[id]) { bad.push('loop at ' + id); return; }
+seen[id] = 1;
+var o = A.visibleOpts(id, p);
+if (!o.length) bad.push('no answers at ' + id);
+o.forEach(function (x) { walk(A.resolve(x[1], c, p), d + 1, seen); });
+delete seen[id];
+})('safety', 0, {});
+if (bad.length) { allOk = false; check(c.label + ' / ' + p, false, bad.slice(0, 6).join(', ')); }
+tbl += '<tr><td>' + esc(c.label) + '</td><td>' + esc(A.PTL[p]) + '</td><td>' + esc(A.startFor(c, p)) + '</td><td>' + (paths > LIMIT ? 'over ' + LIMIT : paths) + '</td><td>' + Object.keys(res).length + '</td><td>' + max + '</td></tr>';
+  });
+});
+check('All paths in all 14 categories and all 5 car types reach a result', allOk);
+h += '</ul>' + tbl + '</table><ul>';
+});
+
+section('4. Safety and honesty rules in the content');
+run('Safety rules', function () {
+  var R = T.R, ids = Object.keys(R);
+var em = ids.filter(function (k) { return R[k].diff === 'emergency' || R[k].c === 'stop'; });
+check('Emergency or stop results exist', em.length > 0, em.length + ' found');
+var bad1 = em.filter(function (k) { return R[k].drive === 'ok' || R[k].drive === 'caution'; });
+check('No emergency or stop result says the car can be driven', bad1.length === 0, bad1.join(', '));
+var pct = ids.filter(function (k) { return /\d\s?%|percent/i.test(JSON.stringify(R[k])); });
+check('No result contains a percentage (no made-up confidence numbers)', pct.length === 0, pct.length ? 'Review: ' + pct.join(', ') : '');
+  var conf = ids.filter(function (k) { return R[k].c === 'confirmed'; });
+info('Results marked "confirmed by a test you reported"', conf.join(', ') || 'none');
+var noUnk = ids.filter(function (k) { return R[k].c !== 'stop' && R[k].c !== 'confirmed' && !R[k].unk; });
+info('Results without a "What we cannot tell yet" note (review for missing uncertainty)', noUnk.length + ': ' + noUnk.join(', '));
+var hv = ids.filter(function (k) { return /high.?voltage|orange cable/i.test(JSON.stringify(R[k])); });
+info('Results that mention high voltage', hv.length + ': ' + hv.join(', '));
+var hot = ids.concat(Object.keys(T.N)).filter(function (k) { var s = JSON.stringify(R[k] || T.N[k]); return /open(ing)? the (radiator|coolant) cap/i.test(s) && !/never|don.t|do not|not /i.test(s); });
+check('No step tells people to open a hot radiator or coolant cap', hot.length === 0, hot.join(', '));
+                              });
+                                 }
+
+if (A && A.esc) {
+section('5. Safe text display');
+run('Escaping', function () {
+  var s = A.esc('<img src=x onerror=alert(1)> "&\'');
+check('Text from outside sources cannot become HTML', s.indexOf('<') < 0 && s.indexOf('"') < 0 && s.indexOf("'") < 0, s);
+});
+}
+
+section('6. Car data helper (vehicle-data-v2.js)');
+run('Car data helper', function () {
+  if (!V) { check('Car data helper available', false); return; }
+info('Functions available', Object.keys(V).join(', '));
+if (typeof V._test === 'function') {
+var r = V._test();
+var show = function (x) {
+var failed = x && (x.ok === false || x.failed > 0 || x.fail > 0 || (Array.isArray(x.errors) && x.errors.length) || (Array.isArray(x.failures) && x.failures.length));
+if (Array.isArray(x)) failed = x.some(function (t) { return t && (t.ok === false || t.pass === false); });
+check('Car data helper built-in unit tests', !failed, JSON.stringify(x).slice(0, 1500));
+};
+if (r && typeof r.then === 'function') { h += '<li id="vt"><span class="info">WAIT</span> running car data unit tests...</li>'; r.then(function (x) { var save = h; h = ''; show(x); document.getElementById('vt').outerHTML = h; h = save; summary(); }, function (e) { fail++; document.getElementById('vt').outerHTML = '<li><span class="fail">FAIL</span> Car data unit tests crashed: ' + esc(e) + '</li>'; summary(); }); }
+  else show(r);
+                                                                                                                                                    } else info('No built-in unit tests found in vehicle-data-v2.js');
+                                       });
+
+section('7. Script errors while loading');
+check('No script errors while loading the files', window.__ctErrors.length === 0, window.__ctErrors.join(' | '));
+
+h += '</ul><p class="d">Checked on ' + esc(new Date().toLocaleString()) + '. These checks find broken links, loops and rule problems in the content. They do not replace testing the app by hand on a phone.</p>';
+out.innerHTML = h;
+function summary() { var el = document.getElementById('sum'); el.textContent = (fail ? 'Problems found: ' : 'All checks passed: ') + pass + ' passed, ' + fail + ' failed.'; el.className = fail ? 'fail' : 'pass'; }
+summary();
+})();
+</script>
+  </body>
+  </html>
+  
