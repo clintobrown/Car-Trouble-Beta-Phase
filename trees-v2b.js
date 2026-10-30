@@ -83,7 +83,7 @@ Second half of the diagnostic content. Must load after trees-v2.js. Same node/re
     ['Only for the first few stops on a damp morning, then it goes away', 'r_brakeRust'], ['Most times I brake', 'r_pads'], ['I’m not sure', 'r_pads']] };
   N.bk_light = { q: 'Is the parking brake fully released?', help: 'The parking brake may be a pedal, a hand lever, or a button marked (P). If it’s even partly on, the red brake light stays on.', opts: [
     ['It was on — the light went out when I released it', 'r_parkBrake', T1], ['It’s released and the light is still on', 'bk_fluid'], ['I’m not sure how to check', 'bk_fluid']] };
-  N.bk_fluid = { q: 'Look at the brake fluid tank. Where is the level?', pic: 'reservoir', look: {
+  N.bk_fluid = { q: 'Look at the brake fluid tank. Where is the level?', look: {
     what: 'A small see-through plastic tank with MIN and MAX marks. The cap usually has a brake symbol or says “brake fluid”.',
     where: 'Usually under the hood on the driver’s side, near the back of the engine area, against the wall between the engine and the cabin.',
     how: 'Compare the liquid with the MIN and MAX marks on the side. Don’t open the cap.',
@@ -99,7 +99,7 @@ Second half of the diagnostic content. Must load after trees-v2.js. Same node/re
   R.r_pads = { t: 'Worn brake pads are likely', c: 'possible', why: 'Many brake pads have a small metal tab designed to squeal when the pads get thin.', step: 'Have the brakes inspected soon, before it turns into grinding.', diff: 'pro', drive: 'caution', need: 'Brake pad thickness inspection' };
   R.r_parkBrake = { t: 'The parking brake was on', c: 'confirmed', why: 'The light went out when you released the parking brake.', step: 'No repair needed. If the light comes back with the parking brake off, run this check again.', diff: 'beginner', drive: 'ok' };
   R.r_brakeFluidLow = { t: 'Brake fluid is low', c: 'strong', why: 'You saw the brake fluid below MIN. Low fluid can come from a leak or from badly worn brake pads.', unk: 'We can’t tell whether there’s a leak.', step: 'Don’t just top it up and forget it. Have the brakes inspected before driving further. If the pedal feels soft or sinks, don’t drive at all.', diff: 'pro', drive: 'no', need: 'Brake leak inspection; pad wear check' };
-  R.r_brakeLight = { t: 'Brake warning light needs checking', c: 'insufficient', why: 'The red brake light can mean low fluid, a hydraulic problem, or an electronic brake fault.', step: 'Have the brake system inspected and scanned before driving far. If the pedal feels different or the car is slow to stop, don’t drive.', diff: 'pro', drive: 'caution', need: 'Brake system inspection; brake/ABS module scan' };
+  R.r_brakeLight = { t: 'Brake warning light needs checking', c: 'insufficient', why: 'The red brake light can mean low fluid, a hydraulic problem, or an electronic brake fault. From here we can’t tell which, so we can’t say the brakes are safe.', step: 'Have the brake system inspected and scanned before you rely on it. A mobile mechanic or a tow is the safest choice. If the pedal feels different or the car is slow to stop, don’t drive at all.', diff: 'pro', drive: '', need: 'Brake system inspection; brake/ABS module scan' };
 
  /* ---------- STEERING ---------- */
  N.st_start = { q: 'What’s the steering problem?', opts: [
@@ -116,7 +116,7 @@ Second half of the diagnostic content. Must load after trees-v2.js. Same node/re
     ['Yes, mainly when braking', 'r_brakePull'], ['No, it pulls while driving normally', 'r_align'], ['I’m not sure', 'r_align']] };
   N.st_noise = { q: 'What does the noise sound like when turning?', opts: [
     ['Clicking or popping, mostly in sharp turns', 'r_cv'], ['A whine or groan', 'st_whine'], ['Clunking or knocking', 'r_bumps'], ['I’m not sure', 'r_steerPro']] };
-  N.st_whine = { q: 'If your car has a power steering fluid tank, where is the level?', help: 'Many newer cars use electric power steering and have no fluid tank at all.', pic: 'reservoir', look: {
+  N.st_whine = { q: 'If your car has a power steering fluid tank, where is the level?', help: 'Many newer cars use electric power steering and have no fluid tank at all.', look: {
     what: 'A small plastic tank, often with a steering-wheel symbol on the cap.',
     where: 'Under the hood, usually near the front or side of the engine.',
     how: 'Compare the level with the marks on the tank (some caps have a small dipstick). Engine off.',
