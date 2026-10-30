@@ -108,7 +108,7 @@ Other files plug in through CTApp.screens, .acts, .changes, .inputs, .photoHtml,
   };
 
  /* ---------- shared HTML pieces ---------- */
- function navHtml(back) { return '<nav class="nav" aria-label="Guide controls">' + (back !== false ? '<button type="button" class="btn2" data-act="back">← Back</button>' : '') + '<button type="button" class="btn2" data-act="restart">Start over</button></nav>'; }
+ function navHtml(back) { var h = '<nav class="nav" aria-label="Guide controls">' + (back !== false ? '<button type="button" class="btn2" data-act="back">← Back</button>' : '') + '<button type="button" class="btn2" data-act="restart">Start over</button></nav>'; if (A.S && A.S.askRestart) h += '<div class="warn" role="group" aria-labelledby="rsq"><p id="rsq" tabindex="-1"><strong>Start over?</strong> Your answers in this guide will be cleared.</p><div class="xrow"><button type="button" class="btn" data-act="restartyes">Yes, start over</button> <button type="button" class="btn2" data-act="restartno">No, keep going</button></div></div>'; return h; }
   function termsHtml(ids) { return (ids || []).map(function (t) { var x = TERMS[t]; return x ? '<details class="more"><summary>' + esc(x[0]) + '</summary><p>' + esc(x[1]) + '</p></details>' : ''; }).join(''); }
   function picHtml(id) { var p = PICS[id]; return p ? '<details class="more pic"><summary>Show me what that looks like</summary><figure>' + p.svg + '<figcaption>' + esc(p.cap) + '</figcaption></figure></details>' : ''; }
   function lookHtml(l) {
@@ -209,7 +209,7 @@ Other files plug in through CTApp.screens, .acts, .changes, .inputs, .photoHtml,
   }
   function restart() {
     var S = A.S;
-    if (S.trail.length && g.confirm && !g.confirm('Start over? Your answers in this guide will be cleared.')) return;
+    if ((S.trail.length || Object.keys(S.photos || {}).length) && !S.askRestart) { S.askRestart = true; render(true); var q = D.getElementById('rsq'); if (q) { try { q.focus({ preventScroll: true }); } catch (e) { q.focus(); } if (q.scrollIntoView) q.scrollIntoView({ block: 'center' }); } return; }
     A.onReset.forEach(function (f) { try { f(); } catch (e) { console.error(e); } });
     A.S = newState(S.veh);
     render();
@@ -226,7 +226,7 @@ Other files plug in through CTApp.screens, .acts, .changes, .inputs, .photoHtml,
   A.acts.pt = function (el) { var p = el.getAttribute('data-pt'); if (PTS.indexOf(p) < 0) return; A.S.veh.pt = p; A.S.veh.ptFrom = 'you'; begin(); };
   A.acts.ans = function (el) { answer(parseInt(el.getAttribute('data-i'), 10)); };
   A.acts.back = function () { back(); };
-  A.acts.restart = function () { restart(); };
+  A.acts.restart = function () { restart(); }; A.acts.restartyes = function () { A.S.askRestart = true; restart(); }; A.acts.restartno = function () { A.S.askRestart = false; render(true); var b = root.querySelector('[data-act="restart"]'); if (b) b.focus(); };
   A.acts.home = function () { A.S.screen = 'home'; A.S.cat = null; A.S.trail = []; A.S.cur = null; render(); };
   A.acts.vehicle = function () { var S = A.S; if (!A.screens.vehicle) return; S.ret = S.screen === 'pt' ? 'pt' : 'home'; S.screen = 'vehicle'; render(); };
 
@@ -255,7 +255,7 @@ Other files plug in through CTApp.screens, .acts, .changes, .inputs, .photoHtml,
     root.addEventListener('click', function (ev) {
       var el = ev.target && ev.target.closest ? ev.target.closest('[data-act]') : null;
       if (!el || !root.contains(el)) return;
-      var f = A.acts[el.getAttribute('data-act')];
+      var f = A.acts[el.getAttribute('data-act')]; if (A.S && el.getAttribute('data-act') !== 'restartyes') A.S.askRestart = false;
       if (f) { ev.preventDefault(); f(el, ev); }
     });
     root.addEventListener('change', function (ev) { var el = ev.target, k = el && el.getAttribute && el.getAttribute('data-change'); if (k && A.changes[k]) A.changes[k](el, ev); });
