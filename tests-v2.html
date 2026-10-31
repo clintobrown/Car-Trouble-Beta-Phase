@@ -26,6 +26,7 @@ li { margin: .25rem 0; } .d { color: #444; font-size: .92rem; word-break: break-
   <script src="trees-v2b.js?v=2"></script>
   <script src="vehicle-data-v2.js?v=2"></script>
   <script src="app-v2-core.js?v=2"></script>
+    <script src="app-v2-expert.js?v=2"></script>
   <script>
   (function () {
   'use strict';
@@ -123,7 +124,31 @@ if (r && typeof r.then === 'function') { h += '<li id="vt"><span class="info">WA
                                                                                                                                                     } else info('No built-in unit tests found in vehicle-data-v2.js');
                                        });
 
-section('7. Script errors while loading');
+section('7. Steps for experienced DIYers (app-v2-expert.js)');
+    run('Expert steps', function () {
+      var E = A && A.expert, R = T && T.R;
+      check('Expert steps file loaded (app-v2-expert.js)', !!E);
+      if (!E || !R) return;
+      var ids = Object.keys(R), has = function (k) { return !!(R[k].x || R[k].nox); };
+      var unk = Object.keys(E.X).concat(Object.keys(E.NOX)).filter(function (k) { return !R[k]; });
+      check('Every expert step list belongs to a real result', unk.length === 0, unk.join(', '));
+      var miss = ids.filter(function (k) { return (R[k].diff === 'pro' || R[k].diff === 'advanced') && !has(k); });
+      check('Every pro or advanced result has expert steps or high-voltage safe checks', miss.length === 0, miss.join(', '));
+      var empty = ids.filter(function (k) { var r = R[k], s = r.nox ? r.nox[1] : (r.x === 'tech' ? r.tech : r.x); return has(k) && !(Array.isArray(s) && s.length && s.every(function (x) { return typeof x === 'string' && x.length > 10; })); });
+      check('Every expert step list has real steps (including reused technical notes)', empty.length === 0, empty.join(', '));
+      var both = ids.filter(function (k) { return R[k].x && R[k].nox; });
+      check('No result has both hands-on steps and high-voltage-only checks', both.length === 0, both.join(', '));
+      check('Hand-off notice wording is exact', E.MSG === 'For the steps beyond this point, we strongly recommend they be performed by a certified mechanic.', E.MSG);
+      var noMsg = ids.filter(function (k) { return has(k) && E.block(R[k]).indexOf(A.esc(E.MSG)) < 0; });
+      check('Every result with expert steps shows the hand-off notice on screen', noMsg.length === 0, noMsg.join(', '));
+      var noTxt = typeof E.text !== 'function' ? ['text() missing'] : ids.filter(function (k) { return has(k) && E.text(R[k]).indexOf(E.MSG) < 0; });
+      check('Every report with expert steps includes the hand-off notice', noTxt.length === 0, noTxt.join(', '));
+      var xss = E.block({ x: ['<img src=x onerror=alert(1)>'] });
+      check('Expert steps are shown as plain text, not HTML', xss.indexOf('<img') < 0, xss.slice(0, 200));
+      info('Results with expert steps', ids.filter(has).length + ' of ' + ids.length + ' (high-voltage safe checks only: ' + Object.keys(E.NOX).join(', ') + ')');
+    });
+    
+    section('8. Script errors while loading');
 check('No script errors while loading the files', window.__ctErrors.length === 0, window.__ctErrors.join(' | '));
 
 h += '</ul><p class="d">Checked on ' + esc(new Date().toLocaleString()) + '. These checks find broken links, loops and rule problems in the content. They do not replace testing the app by hand on a phone.</p>';
