@@ -155,4 +155,16 @@ NOX[id] = high-voltage results: no hands-on steps for anyone without high-voltag
     return h.slice(0, i + anchor.length) + add + h.slice(i + anchor.length);
   };
   A.expert = { X: X, NOX: NOX, block: block, MSG: MSG };
+  A.expert.text = text;
+  /* Plain-text version for the copied, downloaded and saved report (mech = summary for a mechanic). */
+  function text(r, mech) {
+    if (!r || (!r.x && !r.nox)) return '';
+    var s = r.nox ? r.nox[1] : (r.x === 'tech' ? r.tech : r.x), head;
+    if (!s || !s.length) return '';
+    if (mech) {
+      if (r.x === 'tech') return '';
+      head = r.nox ? 'High-voltage result - the owner was given only these safe checks, no hands-on high-voltage steps:\n' : 'Steps for experienced DIYers shown to the owner (after advising a certified mechanic):\n';
+    } else head = '\nBEYOND THIS POINT\n' + MSG + '\n' + (r.nox ? r.nox[0] + '\nSafe checks you can still do:\n' : ASSUME + '\nSafety first: ' + BASE + '\n');
+    return head + s.map(function (x, i) { return (mech ? '- ' : (i + 1) + '. ') + x; }).join('\n') + '\n';
+  }
 })(window);
