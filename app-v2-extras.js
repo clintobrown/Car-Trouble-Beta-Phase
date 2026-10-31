@@ -39,6 +39,7 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
     t += S.trail.length ? S.trail.map(function (s, i) { return (i + 1) + '. ' + s.q + '\n   Answer: ' + s.a + (s.test ? ' (result of a check you did)' : ''); }).join('\n') + '\n' : 'No answers recorded.\n';
     t += '\nWHAT THIS SUGGESTS (worked out from your answers - NOT a confirmed repair)\n' + r.t + '\n';
     t += line('Evidence', A.CONF[r.c] || A.CONF.insufficient) + line('Is it safe to drive', A.DRIVE[r.drive || ''] || A.DRIVE['']) + line('Safety', r.safe) + line('What to do next', r.step) + line('Why we think this', r.why) + line('What we cannot tell yet', r.unk) + line('How hard is it', A.DIFF[r.diff]) + line('Tools', r.tools) + line('Do you need a professional', A.proText(r)) + line('Tests a mechanic may need to do', r.need);
+    if (A.expert && A.expert.text) t += A.expert.text(r);
     if (n) t += '\nPhotos: ' + n + ' attached on this device only. They are not part of this report.\n';
     t += '\nLIMITATIONS\nCar Trouble gives general guidance based on your answers. It cannot see or test the car, and nothing here is a confirmed diagnosis or repair. No VIN (vehicle identification number) is included.\n';
     return t;
@@ -50,6 +51,7 @@ Saved reports are plain text in this browser's localStorage, with no VIN and no 
     t += 'Checks the owner did:\n' + (tests.length ? tests.map(function (s) { return '- ' + s.q + ' -> ' + s.a; }).join('\n') : '- None reported') + '\n\n';
     t += 'Where the guide ended (a suspicion, not a diagnosis): ' + r.t + '\n' + line('Evidence level', A.CONF[r.c] || A.CONF.insufficient) + line('Suggested tests', r.need);
     if (r.tech && r.tech.length) t += 'Technical notes:\n' + r.tech.map(function (x) { return '- ' + x; }).join('\n') + '\n';
+    if (A.expert && A.expert.text) t += A.expert.text(r, true);
     t += line('Safety note given to the owner', r.safe) + line('Driving advice given to the owner', A.DRIVE[r.drive || ''] || A.DRIVE['']);
     if (photoCount()) t += 'The owner has ' + photoCount() + ' photo(s) on their device.\n';
     t += '\nPlease confirm the cause with your own testing before replacing any parts.\n';
