@@ -84,4 +84,5 @@ A bug report never includes the VIN or photos. Car details and answers are inclu
   var bar = D.querySelector('.testbar');
   if (bar) { var b = D.createElement('button'); b.type = 'button'; b.className = 'bugbtn'; b.textContent = 'Found a bug?'; b.addEventListener('click', openBug); bar.appendChild(b); }
   A.bug = { text: bugText, open: openBug, version: VERSION };
+  (function () { var s = D.createElement('style'); s.textContent = '.bugbanner{position:relative;margin:.5rem 0 1rem;border-radius:.75rem;overflow:hidden;border:2px solid #000}.bugbanner img{display:block;width:100%;height:auto}.bugbanner p{position:absolute;left:0;right:0;bottom:0;margin:0;padding:.6rem 1rem;font-size:1.3rem;font-weight:800;line-height:1.3;color:#ffd400;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.85));text-shadow:0 2px 4px #000}'; D.head.appendChild(s); var orig = A.screens.bug; A.screens.bug = function () { var h = orig(); return sent ? h : h.replace('</h2>', '</h2><div class="bugbanner"><img src="bug-city.png?v=1" alt="Cartoon bugs crawling over a circuit-board city"><p>Fuck Bugs, where&rsquo;s this one?</p></div>'); }; })();
 })(window);
