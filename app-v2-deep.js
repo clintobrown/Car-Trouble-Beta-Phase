@@ -1,4 +1,4 @@
-✔/* Car Trouble v2 (BETA) - app-v2-deep.js
+/* Car Trouble v2 (BETA) - app-v2-deep.js
 Deeper, branching steps for experienced DIYers. Loads right after app-v2-expert.js and replaces the short
 "Keep going" lists with test-by-test steps: what to do, what a good and a bad reading looks like, where each
 result leads, how to confirm the fix, and when to hand it to a certified mechanic.
