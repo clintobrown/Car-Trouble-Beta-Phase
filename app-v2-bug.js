@@ -14,7 +14,7 @@ A bug report never includes the VIN or photos. Car details and answers are inclu
   var desc = '', withAnswers = false, from = null, sending = false, sent = false;
   function esc(s) { return A.esc(s); }
 
- (function () { var s = D.createElement('style'); s.textContent = '.bugbtn{display:inline-block;margin:.3rem 0 0 .6rem;min-height:2.5rem;padding:.3rem .9rem;font:inherit;font-size:1rem;font-weight:700;background:#000;color:#ffd400;border:2px solid #000;border-radius:.6rem;cursor:pointer}.bugbtn:focus-visible{outline:3px solid #0b4fa8;outline-offset:2px}#bugtxt{width:100%;font:inherit;padding:.6rem;border:2px solid var(--line);border-radius:.5rem;background:var(--bg);color:var(--fg)}.bugok{padding:1rem;border:2px solid #1a7f37;border-radius:.6rem}'; D.head.appendChild(s); })();
+ (function () { var s = D.createElement('style'); s.textContent = '.bugbtn{display:inline-block;margin:.3rem 0 0 .6rem;min-height:2.5rem;padding:.3rem .9rem;font:inherit;font-size:1rem;font-weight:700;background:#000;color:#ffd400;border:2px solid #000;border-radius:.6rem;cursor:pointer}.bugbtn:focus-visible{outline:3px solid #0b4fa8;outline-offset:2px}#bugtxt{width:100%;font:inherit;padding:.6rem;border:2px solid var(--line);border-radius:.5rem;background:var(--bg);color:var(--fg)}.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}.bugok{padding:1rem;border:2px solid #1a7f37;border-radius:.6rem}'; D.head.appendChild(s); })();
 
  function status(m) { var el = D.getElementById('xstat'); if (!el) return; el.textContent = ''; setTimeout(function () { el.textContent = m; }, 60); }
   function copy(txt, okMsg) {
@@ -51,8 +51,8 @@ A bug report never includes the VIN or photos. Car details and answers are inclu
  A.screens.bug = function () {
    if (sent) return '<div class="bugok"><h2 tabindex="-1" data-focus>Thank you! Your bug report was sent.</h2><p>The developer will look at it. You can carry on using the app.</p></div>' +
      '<nav class="nav" aria-label="Guide controls"><button type="button" class="btn" data-act="bugback">&larr; Back to where I was</button><button type="button" class="btn2" data-act="bugmore">Report another bug</button></nav>';
-   return '<h2 tabindex="-1" data-focus>Found a bug? Tell us</h2><p>Thank you for testing! Describe what went wrong or what was confusing. Nothing is sent until you press Send.</p>' +
-     '<div class="field"><label for="bugtxt">What happened, and what did you expect?</label><textarea id="bugtxt" rows="5" maxlength="4000" data-input="bugtxt">' + esc(desc) + '</textarea></div>' +
+   return '<h2 tabindex="-1" data-focus class="vh">Feedback</h2><p>Describe any issues you had, bugs you found, or any suggestions you may have, and we will try our best to accommodate.</p>' +
+     '<div class="field"><label for="bugtxt" class="vh">Describe your issue or suggestion</label><textarea id="bugtxt" rows="5" maxlength="4000" data-input="bugtxt">' + esc(desc) + '</textarea></div>' +
      '<label class="radio"><input type="checkbox" data-change="bugans"' + (withAnswers ? ' checked' : '') + '> Include my car details and my answers so far (never my VIN or photos)</label>' +
      '<div class="xrow"><button type="button" class="btn" data-act="bugsend"' + (sending ? ' disabled' : '') + '>' + (sending ? 'Sending...' : 'Send bug report') + '</button></div>' +
      '<p class="status" id="xstat" role="status" aria-live="polite"></p>' +
