@@ -46,10 +46,10 @@ function $(id) { return D.getElementById(id); }
 function hasCar() { var v = A.S && A.S.veh; return !!(v && v.year && v.make && v.model); }
 function draftW() { return A.vehicleDebug && A.vehicleDebug.draft ? A.vehicleDebug.draft() : null; }
 function intro() { return !done && !!(A.S && A.S.intro); }
-var CHOICE = '<div class="carstep"><p class="kicker">Step 1 of 2</p><h2 tabindex="-1" data-focus>First, tell us about your car</h2>' +
-'<p class="help">Do you have your VIN (Vehicle Identification Number) handy? It’s the 17-character code at the bottom of the windshield on the driver’s side, on the sticker in the driver’s door frame, and on your registration or insurance card.</p>' +
-'<div class="vchoice"><button type="button" class="opt" data-act="vMode" data-mode="vin">I know my VIN#<small>We’ll look up the year, make and model for you.</small></button>' +
-'<button type="button" class="opt" data-act="vMode" data-mode="manual">I don’t know my VIN# at the moment<small>Choose the year, make and model from menus.</small></button></div></div>';
+var CHOICE = '<h2 tabindex="-1" data-focus style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap">Tell us about your car</h2>' +
+'<div class="vchoice start"><button type="button" class="opt" data-act="vMode" data-mode="vin">I have my VIN#</button>' +
+'<button type="button" class="opt" data-act="vMode" data-mode="manual">I don’t have my VIN# right now</button></div>';
+st.textContent += '.vchoice.start{margin:2.5rem auto 0;max-width:34rem}.vchoice.start .opt{text-align:center;padding:1.6rem 1.25rem;font-size:1.35rem}@media (hover:none){.cat:hover,.opt:hover{transform:none}}';
 var home = A.screens.home, veh = A.screens.vehicle;
 if (home && veh) {
 A.screens.home = function () {
