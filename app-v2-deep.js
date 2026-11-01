@@ -1,4 +1,4 @@
-/* Car Trouble v2 (BETA) - app-v2-deep.js
+✔/* Car Trouble v2 (BETA) - app-v2-deep.js
 Deeper, branching steps for experienced DIYers. Loads right after app-v2-expert.js and replaces the short
 "Keep going" lists with test-by-test steps: what to do, what a good and a bad reading looks like, where each
 result leads, how to confirm the fix, and when to hand it to a certified mechanic.
@@ -253,8 +253,8 @@ function pretty(h) {
 var i = h.indexOf('<ol class="xsteps">'); if (i < 0) return h;
 var j = h.indexOf('</ol>', i); if (j < 0) return h;
 var part = h.slice(i, j)
-.replace(/ ✔ ([^✘<]*)/g, '<span class="xg"><b>✔</b> $1</span>')
 .replace(/ ✘ ([^✔<]*)/g, '<span class="xb"><b>✘</b> $1</span>')
+.replace(/ ✔ ([^✘<]*)/g, '<span class="xg"><b>✔</b> $1</span>')
 .replace(/<li>Confirm the fix:/g, '<li><strong class="xc">Confirm the fix:</strong>')
 .replace(/<li>Still not fixed\?/g, '<li><strong>Still not fixed?</strong>');
 return h.slice(0, i) + part + h.slice(j);
