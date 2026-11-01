@@ -292,6 +292,36 @@ Powertrains: Gasoline, Diesel, Hybrid, Electric, Not sure. No vehicle-specific s
   R.r_leftOn = { t: 'Something left on probably drained the battery', c: 'strong', why: 'A light, open door or plugged-in accessory can flatten a battery overnight.', step: 'Recharge or jump-start the battery, then make sure everything is off. If it happens again with nothing left on, have a shop check for a hidden drain.', diff: 'beginner', drive: 'ok', need: 'Battery test if it happens again' };
   R.r_drain = { t: 'Something may be draining the battery while parked', c: 'possible', why: 'A battery that tests good but goes flat after sitting suggests something keeps using power after the car is off.', unk: 'A weak battery or charging problem is still possible if they haven’t been tested.', step: 'Have the battery and charging system tested first. If they pass, ask a shop for a “parasitic draw test” to find what’s draining it.', diff: 'pro', drive: '', terms: ['drain'], need: 'Battery test; charging test; key-off current draw (parasitic draw) test', tech: ['Fully charge and load-test the battery first.', 'Verify charging system performance.', 'Allow vehicle modules to enter sleep mode, then measure key-off current with appropriate equipment.', 'Identify the responsible circuit before replacing a module.'] };
 
+  /* ---------- SOMETHING ELSE (catch-all category) ---------- */
+  CATS.push({ id: 'other', icon: '❓', label: 'Something else', sub: 'Not listed above, or not sure what’s wrong', start: { def: 'os_start' } });
+  N.os_start = { q: 'Which of these is closest to what you’re noticing?', help: 'If none of these fit, that’s fine — choose “Something else” and we’ll help you describe it for a mechanic.', opts: [
+    ['A strange smell', 'os_smell'],
+    ['A warning light or message on the dashboard', 'wl_start'],
+    ['Smoke or vapor from the exhaust pipe', 'os_exhaust', FUEL],
+    ['Something else, or it comes and goes', 'r_osDescribe'],
+    ['I’m not sure', 'r_osDescribe']] };
+  N.os_smell = { q: 'What does it smell like?', opts: [
+    ['Burning rubber or plastic', 'r_osBurn'],
+    ['Raw fuel or gasoline', 'x_fuel', FUEL],
+    ['Sweet, like syrup', 'oh_leak', FUEL],
+    ['Rotten eggs or sulfur', 'r_osEgg', FUEL],
+    ['Musty or moldy when the fan is on', 'r_osMusty'],
+    ['Something else', 'r_osDescribe']] };
+  N.os_exhaust = { q: 'What does the smoke or vapor look like?', opts: [
+    ['Thin and white, and it goes away once the engine warms up', 'r_osCondense'],
+    ['Thick and white, keeps going, maybe a sweet smell', 'r_osCoolant'],
+    ['Blue or gray', 'r_osOil'],
+    ['Black', 'r_osBlack'],
+    ['I’m not sure', 'r_osDescribe']] };
+  R.r_osDescribe = { t: 'Let’s describe it for a mechanic', c: 'insufficient', why: 'Your problem doesn’t match one of the guide’s sections yet, so we can’t narrow it down safely.', step: 'Write down what happens, when it happens (cold or warm engine, speed, turning, braking), how long it has been going on, and whether it’s getting worse. A phone video with sound helps. Show your notes and this report to a mechanic. If it starts to match another section, press Start over and choose that one.', diff: 'pro', drive: '' };
+  R.r_osBurn = { t: 'Burning smell — have it checked soon', c: 'possible', why: 'A burning rubber or plastic smell can come from a slipping belt, a dragging brake, an overheating electrical part, or something stuck on the hot exhaust.', step: 'If the smell gets stronger or you see smoke, stop and turn the car off. Otherwise let the car cool, look underneath for anything caught on the exhaust (don’t touch), and have a mechanic inspect the brakes, belts and wiring.', safe: 'If there is smoke or flames, get away from the car and call emergency services.', diff: 'pro', drive: 'caution', need: 'Inspection of brakes, drive belts, wiring and exhaust area' };
+  R.r_osEgg = { t: 'Rotten-egg smell — exhaust or fuel mixture problem possible', c: 'possible', why: 'A sulfur smell usually comes from the exhaust, often when the catalytic converter is overloaded because the engine is getting too much fuel.', step: 'Have the trouble codes read and the exhaust system checked. If the check-engine light is flashing, stop driving.', diff: 'pro', drive: 'caution', need: 'Scan for codes; fuel trim check; catalytic converter inspection' };
+  R.r_osMusty = { t: 'Musty smell from the vents — likely mildew', c: 'possible', why: 'Moisture in the A/C system or a dirty cabin air filter can grow mildew that smells when the fan runs.', step: 'Replace the cabin air filter (your owner’s manual shows where it is). If the smell stays, a shop can clean the A/C system. Check the floor for dampness, which can mean a water leak.', diff: 'beginner', drive: 'ok' };
+  R.r_osCondense = { t: 'Probably normal condensation', c: 'possible', why: 'Thin white vapor on cold or damp days that disappears once the engine warms up is usually just water vapor.', step: 'No action needed if it clears up when warm and the coolant level stays steady. If it continues after warm-up, run this guide again.', diff: 'beginner', drive: 'ok' };
+  R.r_osCoolant = { t: 'Coolant may be burning inside the engine', c: 'possible', why: 'Thick white exhaust that doesn’t clear, especially with a sweet smell, can mean coolant is getting into the engine.', unk: 'Only testing can confirm an internal leak, such as a head gasket problem.', step: 'When the engine is fully cool, check the coolant level. Avoid driving and have the cooling system tested.', safe: 'Never open the coolant cap while hot. If the temperature gauge rises, pull over.', diff: 'pro', drive: 'no', need: 'Cooling system pressure test; combustion leak test' };
+  R.r_osOil = { t: 'The engine may be burning oil', c: 'possible', why: 'Blue or gray smoke usually means oil is reaching the inside of the engine or dripping onto hot exhaust parts.', step: 'With the engine off, check the oil level and top up if low. Have a mechanic find the source.', pic: 'dipstick', diff: 'pro', drive: 'caution', need: 'Oil consumption check; compression or leak-down test; PCV inspection' };
+  R.r_osBlack = { t: 'The engine may be getting too much fuel', c: 'possible', why: 'Black smoke usually means fuel isn’t burning completely — too much fuel, or too little air.', step: 'Have the trouble codes read and the air filter, sensors and fuel injectors checked.', diff: 'pro', drive: 'caution', need: 'Scan for codes; air filter, airflow sensor, oxygen sensor and injector checks' };
+  
  /* Remaining categories (noise, shake, brakes, steering, leaks, climate, power, stall, tires, electrical) are in trees-v2b.js. */
  g.CarTroubleTrees = { N: N, R: R, TERMS: TERMS, CATS: CATS, FUEL: FUEL, T1: T1 };
 })(window);
