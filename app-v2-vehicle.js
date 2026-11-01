@@ -46,8 +46,8 @@ the user presses Look up, is never stored, and is never shown in reports. */
      '<div class="field"><label for="v-make">Make (brand)</label><select id="v-make" data-change="make">' + makes + '</select></div>' +
      '<div class="field"><label for="v-model">Model</label><select id="v-model" data-change="model" aria-describedby="v-modelmsg"></select>' +
      '<div id="v-otherbox" hidden><label for="v-other" class="lbl">Type your model</label><input type="text" id="v-other" maxlength="40" data-input="other" autocomplete="off"></div><p class="status" id="v-modelmsg" role="status"></p></div>' +
-     '<div class="field"><label for="v-engine">Engine</label><select id="v-engine" data-change="engine" aria-describedby="v-engmsg"></select><p class="status" id="v-engmsg" role="status"></p></div>' +
      '<fieldset class="field"><legend class="lbl">What kind of car is it?</legend>' + pts + '<p class="small" id="v-ptnote"></p></fieldset>' +
+     '<div class="field"><label for="v-engine">Engine</label><select id="v-engine" data-change="engine" aria-describedby="v-engmsg"></select><p class="status" id="v-engmsg" role="status"></p></div>' +
      '<div class="acts"><button type="button" class="btn" data-act="vSave">Save car details</button><button type="button" class="btn2" data-act="back">Cancel</button><button type="button" class="btn2" data-act="vClear">Clear all car details</button></div>';
  }
 
@@ -57,7 +57,7 @@ the user presses Look up, is never stored, and is never shown in reports. */
   function clearConf() { var c = $('v-vinconf'); if (c) c.innerHTML = ''; }
   function ptNote() {
     var el = $('v-ptnote');
-    if (el) el.textContent = W.ptFrom === 'engine' ? 'Filled in from the engine you chose. Change it if it’s wrong.' : (W.ptFrom === 'vin' ? 'Filled in from the VIN lookup. Change it if it’s wrong.' : '');
+    if (el) el.textContent = W.ptFrom === 'engine' ? 'Filled in from the engine you chose. Change it if it’s wrong.' : (W.ptFrom === 'vin' ? 'Filled in from the VIN lookup. Change it if it’s wrong.' : (W.ptFrom === 'you' && W.pt && W.pt !== 'Not sure' ? 'The engine list only shows engines that match this choice.' : ''));
     var radios = D.querySelectorAll('input[name="v-pt"]');
     for (var i = 0; i < radios.length; i++) radios[i].checked = radios[i].value === W.pt;
   }
@@ -77,7 +77,7 @@ the user presses Look up, is never stored, and is never shown in reports. */
     if (!W.model) { sel.innerHTML = '<option value="">Choose a model first</option>'; sel.disabled = true; return; }
     var h = '<option value="">I’m not sure / skip</option>', matched = !W.engine;
     if (W.vinEngine) { h += '<option value="vin"' + (W.engine === W.vinEngine ? ' selected' : '') + '>From VIN: ' + esc(W.vinEngine.label) + '</option>'; if (W.engine === W.vinEngine) matched = true; }
-    W.engines.forEach(function (e, i) { var t = engText(e), on = !!(W.engine && W.engine !== W.vinEngine && W.engine.label === t); if (on) matched = true; h += '<option value="' + i + '"' + (on ? ' selected' : '') + '>' + esc(t) + '</option>'; });
+    var want = W.ptFrom === 'you' && W.pt && W.pt !== 'Not sure' ? W.pt : ''; if (want && !W.engines.some(function (e) { return !e.powertrain || e.powertrain === want; })) want = ''; W.engines.forEach(function (e, i) { if (want && e.powertrain && e.powertrain !== want) return; var t = engText(e), on = !!(W.engine && W.engine !== W.vinEngine && W.engine.label === t); if (on) matched = true; h += '<option value="' + i + '"' + (on ? ' selected' : '') + '>' + esc(t) + '</option>'; });
     if (!matched) h += '<option value="keep" selected>' + esc(W.engine.label) + '</option>';
     sel.innerHTML = h;
     sel.disabled = false;
@@ -172,10 +172,10 @@ the user presses Look up, is never stored, and is never shown in reports. */
     if (v === '') W.engine = null;
     else if (v === 'vin') W.engine = W.vinEngine;
     else if (v !== 'keep') { e = W.engines[+v]; W.engine = e ? { label: engText(e), powertrain: e.powertrain, source: e.source || 'EPA FuelEconomy.gov', detailed: !!e.detailed } : null; }
-    if (W.engine && W.engine.powertrain) { W.pt = W.engine.powertrain; W.ptFrom = W.engine.source === 'NHTSA VIN decode' ? 'vin' : 'engine'; }
+    if (W.engine && W.engine.powertrain && W.ptFrom !== 'you') { W.pt = W.engine.powertrain; W.ptFrom = W.engine.source === 'NHTSA VIN decode' ? 'vin' : 'engine'; }
     ptNote();
   };
-  A.changes.pt = function (el) { W.pt = el.value; W.ptFrom = 'you'; ptNote(); };
+  A.changes.pt = function (el) { W.pt = el.value; W.ptFrom = 'you'; ptNote(); if (W.engine && W.engine !== W.vinEngine && W.engine.powertrain && W.pt !== 'Not sure' && W.engine.powertrain !== W.pt) W.engine = null; var es = $('v-engine'); if (es && (!es.disabled || !W.model)) fillEngines(); };
   A.inputs.vin = function (el) { var c = V.cleanVin(el.value); say('v-vinmsg', c.length ? c.length + ' of 17 characters' : ''); };
   A.acts.vinLookup = function () {
     var el = $('v-vin'), vin = V.cleanVin(el ? el.value : ''), p = V.vinProblem(vin);
